@@ -25,10 +25,8 @@ module ActionView
           state_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
         end
 
-        return state_options + options_for_select(STATES.collect{ |state| [ state.name, state.id ] }, selected)
+        return state_options + options_for_select(STATE_SELECT_MODEL_NAME.constantize.all.collect{ |state| [ state.name, state.id ] }, selected)
       end
-      # All the states included in the state_options output.
-      STATES = STATE_SELECT_MODEL_NAME.constantize.all
     end
     
     class InstanceTag
