@@ -1,0 +1,16 @@
+CountrySelect
+=============
+
+Provides a simple helper to get an HTML select list of countries.  The list of countries comes from an ActiveRecord model.
+
+Based on the original work of Michael Koziarski which used a constant for the country names.
+
+Example
+=======
+
+country_select("user", "country_name")
+
+The plugin defaults to using the "Country" model with field "Name". Override COUNTRY_SELECT_MODEL_NAME and COUNTRY_SELECT_MODEL_FIELD for different behavior.
+
+
+Copyright (c) 2008 Michael Koziarski, released under the MIT license
