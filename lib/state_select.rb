@@ -33,7 +33,7 @@ module ActionView
       def to_state_select_tag(priority_states, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
-        value = value(object)
+        value = value(object).to_i                                                # Convert to integer in case the ID is stored as a string in the ORM
         content_tag("select",
           add_options(
             country_options_for_select(value, priority_states),
