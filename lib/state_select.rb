@@ -20,19 +20,12 @@ module ActionView
       def state_options_for_select(selected = nil, priority_states = nil, model_name = STATE_SELECT_MODEL_NAME)
         state_options = ""
         
-        # Load up the entire list of states to allow for non-db lookup of priority_states details
-        states = model_name.constantize.all
-        
         if priority_states
-          priority_states.each do |priority_state|
-            # Get the first state with a matching name
-            state = states.select { |state| state.name == priority_state }[0]
-            state_options += options_for_select({ state.name => state.id}, selected)
-          end
+          state_options += options_for_select(priority_states.collect{ |state| [state.name, state.id] }, selected)
           state_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
         end
 
-        return state_options + options_for_select(states.collect{ |state| [ state.name, state.id ] }, selected)
+        return state_options + options_for_select(model_name.constantize.all.collect{ |state| [ state.name, state.id ] }, selected)
       end
     end
     
