@@ -3,12 +3,14 @@ module ActionView
   module Helpers
     module FormOptionsHelper
       STATE_SELECT_MODEL_NAME  = "State" unless const_defined?("STATE_SELECT_MODEL_NAME")
+      STATE_SELECT_SCOPE_NAME  = "all"   unless const_defined?("STATE_SELECT_SCOPE_NAME")
       STATE_SELECT_MODEL_FIELD = "name"  unless const_defined?("STATE_SELECT_MODEL_FIELD")
       
       # Return select and option tags for the given object and method, using state_options_for_select to generate the list of option tags.
       def state_select(object, method, priority_states = nil, options = {}, html_options = {})
         # If no model name given, use the constant
         options.reverse_merge!({ :model_name => STATE_SELECT_MODEL_NAME })
+        options.reverse_merge!({ :scope_name => STATE_SELECT_SCOPE_NAME })
         
         InstanceTag.new(object, method, self, options.delete(:object)).to_state_select_tag(priority_states, options, html_options)
       end
@@ -17,15 +19,22 @@ module ActionView
       # so that they will be listed above the rest of the (long) list.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
-      def state_options_for_select(selected = nil, priority_states = nil, model_name = STATE_SELECT_MODEL_NAME)
+      def state_options_for_select(selected = nil, priority_states = nil, model_name = STATE_SELECT_MODEL_NAME, scope_name = STATE_SELECT_SCOPE_NAME)
         state_options = ""
         
-        if priority_states
-          state_options += options_for_select(priority_states.collect{ |state| [state.name, state.id] }, selected)
+        if priority_states && priority_states.size > 0
+          begin
+            state_options += options_for_select(priority_states.collect{ |state| [state.name, state.id] }, selected)
+          rescue
+            priority_states.each do |priority_state|
+              state = STATE_SELECT_MODEL_NAME.constantize.find_by_name priority_state
+              state_options += options_for_select({ state.name => state.id}, selected)
+            end
+          end
           state_options += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
         end
-
-        return state_options + options_for_select(model_name.constantize.all.collect{ |state| [ state.name, state.id ] }, selected)
+        
+        return state_options + options_for_select(model_name.constantize.send(scope_name).collect{ |state| [ state.name, state.id ] }, selected)
       end
     end
     
@@ -33,11 +42,12 @@ module ActionView
       def to_state_select_tag(priority_states, options, html_options)
         html_options = html_options.stringify_keys
         model_name   = options[:model_name]
+        scope_name   = options[:scope_name]
         add_default_name_and_id(html_options)
         value = value(object).to_i                                                # Convert to integer in case the ID is stored as a string in the ORM
         content_tag("select",
           add_options(
-            state_options_for_select(value, priority_states, model_name),
+            state_options_for_select(value, priority_states, model_name, scope_name),
             options, value
           ), html_options
         )
